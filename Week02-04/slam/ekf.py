@@ -18,6 +18,9 @@ class EKF:
         self.robot = robot
         self.markers = np.zeros((2,0))
         self.taglist = []
+        
+        # Bool for whether or not robot is at origin
+        self.origin = True
 
         # Covariance matrix
         self.P = np.zeros((3,3))
@@ -35,6 +38,10 @@ class EKF:
         self.robot.state = np.zeros((3, 1))
         self.markers = np.zeros((2,0))
         self.taglist = []
+
+        # Bool for whether or not robot is at origin
+        self.origin = True
+
         # Covariance matrix
         self.P = np.zeros((3,3))
         self.init_lm_cov = 1e3
@@ -91,6 +98,7 @@ class EKF:
         x = self.get_state_vector()
 
         # TODO: add your codes here to complete the prediction step
+        self.robot.drive(raw_drive_meas)
         Q = self.predict_covariance(raw_drive_meas)
         sigma_bar = F@self.P@(F.T) + Q
         self.P = sigma_bar
@@ -116,13 +124,14 @@ class EKF:
         H = self.robot.derivative_measure(self.markers, idx_list)
 
         x = self.get_state_vector()
-
+        #print(f"Original State {x}")
         # TODO: add your codes here to compute the updated x
         Y = z - z_hat
         sigma_bar = self.P
         S = H@sigma_bar@(H.T) + R
         K = sigma_bar@(H.T)@np.linalg.inv(S)
         x += K@Y
+        #print(f"Set State {x}")
         self.set_state_vector(x)
         self.P = (np.eye((K@H).shape[0]) - K@H)@sigma_bar
 
@@ -153,6 +162,7 @@ class EKF:
                 continue
             
             lm_bff = lm.position
+            # print(f"lm_bff = {lm_bff}")
             lm_inertial = robot_xy + R_theta @ lm_bff
 
             self.taglist.append(int(lm.tag))

@@ -90,7 +90,7 @@ def compute_rmse(points1, points2):
 
 if __name__ == '__main__':
     import argparse
-
+    # python SLAM_eval.py W4_thu_10am_arena2.txt lab_output\slam.txt
     parser = argparse.ArgumentParser("Matching the estimated map and the true map")
     parser.add_argument("groundtruth", type=str, help="The ground truth file name.")
     parser.add_argument("estimate", type=str, help="The estimate file name.")

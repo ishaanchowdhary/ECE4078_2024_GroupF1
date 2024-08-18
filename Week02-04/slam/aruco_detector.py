@@ -15,7 +15,7 @@ class aruco_detector:
         self.aruco_params = cv2.aruco.DetectorParameters() # updated to work with newer OpenCV
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100) # updated to work with newer OpenCV
     
-    def detect_marker_positions(self, img):
+    def detect_marker_positions(self, img, flag=False):
         # Perform detection
         corners, ids, rejected = cv2.aruco.detectMarkers(
             img, self.aruco_dict, parameters=self.aruco_params)
@@ -40,9 +40,12 @@ class aruco_detector:
             lm_tvecs = tvecs[ids==idi].T
             lm_bff2d = np.block([[lm_tvecs[2,:]],[-lm_tvecs[0,:]]])
             lm_bff2d = np.mean(lm_bff2d, axis=1).reshape(-1,1)
-
-            lm_measurement = measure.Marker(lm_bff2d, idi)
-            measurements.append(lm_measurement)
+            if flag:
+                lm_measurement = measure.Marker(lm_bff2d, idi, (0.05*np.eye(2)))
+                measurements.append(lm_measurement)
+            else:
+                lm_measurement = measure.Marker(lm_bff2d, idi)
+                measurements.append(lm_measurement)
         
         # Draw markers on image copy
         img_marked = img.copy()

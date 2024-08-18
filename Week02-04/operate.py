@@ -96,7 +96,7 @@ class Operate:
 
     # SLAM with ARUCO markers       
     def update_slam(self, drive_meas):
-        lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img)
+        lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,self.ekf.origin)
         if self.request_recover_robot:
             is_success = self.ekf.recover_from_pause(lms)
             if is_success:
@@ -200,16 +200,20 @@ class Operate:
             ########### replace with your M1 codes ###########
             # drive forward
             if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-                self.command['motion'] = [5, 0]
+                self.command['motion'] = [2, 0]
+                self.ekf.origin = False
             # drive backward
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
-                self.command['motion'] = [-5, 0]
+                self.command['motion'] = [-2, 0]
+                self.ekf.origin = False
             # turn left
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
-                self.command['motion'] = [0, 5]
+                self.command['motion'] = [0, 2]
+                self.ekf.origin = False
             # drive right
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
-                self.command['motion'] = [0, -5]
+                self.command['motion'] = [0, -2]
+                self.ekf.origin = False
             ####################################################
             # stop
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
