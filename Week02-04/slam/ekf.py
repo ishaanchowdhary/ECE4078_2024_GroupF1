@@ -19,9 +19,9 @@ class EKF:
         self.markers = np.zeros((2,0))
         self.taglist = []
         
-        # Bool for whether or not robot is at origin
+        # Bool for whether or not robot is at origin or moving
         self.origin = True
-
+        self.motion = False
         # Covariance matrix
         self.P = np.zeros((3,3))
         self.init_lm_cov = 1e3
@@ -41,7 +41,7 @@ class EKF:
 
         # Bool for whether or not robot is at origin
         self.origin = True
-
+        self.motion = False
         # Covariance matrix
         self.P = np.zeros((3,3))
         self.init_lm_cov = 1e3
@@ -100,6 +100,7 @@ class EKF:
         # TODO: add your codes here to complete the prediction step
         self.robot.drive(raw_drive_meas)
         Q = self.predict_covariance(raw_drive_meas)
+        #print(x)
         sigma_bar = F@self.P@(F.T) + Q
         self.P = sigma_bar
 
@@ -111,7 +112,6 @@ class EKF:
         # Construct measurement index list
         tags = [lm.tag for lm in measurements]
         idx_list = [self.taglist.index(tag) for tag in tags]
-
         # Stack measurements and set covariance
         z = np.concatenate([lm.position.reshape(-1,1) for lm in measurements], axis=0)
         R = np.zeros((2*len(measurements),2*len(measurements)))
@@ -144,13 +144,20 @@ class EKF:
     def predict_covariance(self, raw_drive_meas):
         n = self.number_landmarks()*2 + 3
         Q = np.zeros((n,n))
+        v,omega = self.robot.convert_wheel_speeds(raw_drive_meas.left_speed,raw_drive_meas.right_speed)
         Q[0:3,0:3] = self.robot.covariance_drive(raw_drive_meas)+ 0.01*np.eye(3)
+        '''
+        if v==0 and omega==0:
+            Q[0:3,0:3] = self.robot.covariance_drive(raw_drive_meas)+ 0.01*np.eye(3)
+        else:
+            Q[0:3,0:3] = self.robot.covariance_drive(raw_drive_meas)+ 0.1*np.eye(3)
+        '''
         return Q
 
     def add_landmarks(self, measurements):
         if not measurements:
             return
-
+        
         th = self.robot.state[2]
         robot_xy = self.robot.state[0:2,:]
         R_theta = np.block([[np.cos(th), -np.sin(th)],[np.sin(th), np.cos(th)]])

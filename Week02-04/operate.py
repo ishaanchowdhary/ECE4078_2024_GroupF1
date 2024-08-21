@@ -96,7 +96,7 @@ class Operate:
 
     # SLAM with ARUCO markers       
     def update_slam(self, drive_meas):
-        lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,self.ekf.origin)
+        lms, self.aruco_img = self.aruco_det.detect_marker_positions(self.img,self.ekf.motion)
         if self.request_recover_robot:
             is_success = self.ekf.recover_from_pause(lms)
             if is_success:
@@ -124,15 +124,15 @@ class Operate:
 
     # wheel and camera calibration for SLAM
     def init_ekf(self, datadir, ip):
-        fileK = "{}intrinsic.txt".format(datadir)
+        fileK = "{}intrinsic2.txt".format(datadir)
         camera_matrix = np.loadtxt(fileK, delimiter=',')
-        fileD = "{}distCoeffs.txt".format(datadir)
+        fileD = "{}distCoeffs2.txt".format(datadir)
         dist_coeffs = np.loadtxt(fileD, delimiter=',')
-        fileS = "{}scale.txt".format(datadir)
+        fileS = "{}scale_makerspace_2.txt".format(datadir)
         scale = np.loadtxt(fileS, delimiter=',')
         if ip == 'localhost':
             scale /= 2
-        fileB = "{}baseline.txt".format(datadir)  
+        fileB = "{}baseline_makerspace_2.txt".format(datadir)  
         baseline = np.loadtxt(fileB, delimiter=',')
         robot = Robot(baseline, scale, camera_matrix, dist_coeffs)
         return EKF(robot)
@@ -202,22 +202,27 @@ class Operate:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
                 self.command['motion'] = [1, 0]
                 self.ekf.origin = False
+                self.ekf.motion = True
             # drive backward
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
                 self.command['motion'] = [-1, 0]
                 self.ekf.origin = False
+                self.ekf.motion = True
             # turn left
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
                 self.command['motion'] = [0, 2]
                 self.ekf.origin = False
+                self.ekf.motion = True
             # drive right
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
                 self.command['motion'] = [0, -2]
                 self.ekf.origin = False
+                self.ekf.motion = True
             ####################################################
             # stop
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 self.command['motion'] = [0, 0]
+                self.ekf.motion = False
             # save image
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_i:
                 self.command['save_image'] = True

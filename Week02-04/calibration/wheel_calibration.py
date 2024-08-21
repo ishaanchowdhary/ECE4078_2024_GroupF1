@@ -113,11 +113,11 @@ if __name__ == "__main__":
 
     print('Calibrating PiBot scale...\n')
     scale = calibrateWheelRadius()
-    fileNameS = "{}scale.txt".format(dataDir)
+    fileNameS = "{}scale_makerspace.txt".format(dataDir)
     np.savetxt(fileNameS, np.array([scale]), delimiter=',')
     print('Calibrating PiBot baseline...\n')
     baseline = calibrateBaseline(scale)
-    fileNameB = "{}baseline.txt".format(dataDir)
+    fileNameB = "{}baseline_makerspace.txt".format(dataDir)
     np.savetxt(fileNameB, np.array([baseline]), delimiter=',')
 
     print('Finished calibration')

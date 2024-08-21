@@ -36,6 +36,7 @@ class aruco_detector:
                 continue
             else:
                 seen_ids.append(idi)
+                # print(f"rvecs:\n{rvecs}\ntvecs:\n{tvecs}")
 
             lm_tvecs = tvecs[ids==idi].T
             lm_bff2d = np.block([[lm_tvecs[2,:]],[-lm_tvecs[0,:]]])

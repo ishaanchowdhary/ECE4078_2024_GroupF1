@@ -72,5 +72,5 @@ if __name__ == '__main__':
     np.savetxt(fileNameI, camera.K, delimiter=',')
     
     # extrinsic parameters
-    # print("\nExtrinsic parameters:\n", repr(camera.pose))
+    print("\nExtrinsic parameters:\n", repr(camera.pose))
 
