@@ -1,0 +1,97 @@
+import numpy as np
+import cv2
+from cv2 import aruco
+import matplotlib.pyplot as plt
+import os
+import sys
+import time
+import pygame
+
+sys.path.append("../util")
+# from pibot import PenguinPi
+from util.pibot import PenguinPi
+
+
+class Calibration:
+    def __init__(self, args):
+        self.pibot = PenguinPi(args.ip, args.port)
+        self.img = np.zeros([240, 320, 3], dtype=np.uint8)
+        self.command = {'motion': [0, 0], 'image': False}
+        self.finish = False
+        self.images_collected = 0
+
+    def image_collection(self, dataDir, images_to_collect):
+        if self.command['image']:
+            if self.images_collected < images_to_collect:
+                image = self.pibot.get_image()
+                filename = os.path.join(dataDir, "calib_{}.jpg".format(self.images_collected))
+                image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                cv2.imwrite(filename, image)
+                self.images_collected += 1
+                if self.images_collected >= images_to_collect:
+                    self.finish = True
+                self.command['image'] = False  # Reset image command
+
+    def update_keyboard(self):
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    self.command['motion'] = [1, 0]
+                elif event.key == pygame.K_DOWN:
+                    self.command['motion'] = [-1, 0]
+                elif event.key == pygame.K_LEFT:
+                    self.command['motion'] = [0, 1]
+                elif event.key == pygame.K_RIGHT:
+                    self.command['motion'] = [0, -1]
+                elif event.key == pygame.K_SPACE:
+                    self.command['motion'] = [0, 0]
+                elif event.key == pygame.K_RETURN:
+                    self.command['image'] = True
+
+    def control(self):
+        motion_command = self.command['motion']
+        lv, rv = self.pibot.set_velocity(motion_command)
+
+    def take_pic(self):
+        self.img = self.pibot.get_image()
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip", metavar='', type=str, default='localhost')
+    parser.add_argument("--port", metavar='', type=int, default=40000)
+    args, _ = parser.parse_known_args()
+
+    currentDir = os.getcwd()
+    dataDir = "{}/param/".format(currentDir)
+    if not os.path.exists(dataDir):
+        os.makedirs(dataDir)
+
+    images_to_collect = 10
+
+    calib = Calibration(args)
+
+    width, height = 640, 480
+    canvas = pygame.display.set_mode((width, height))
+    pygame.display.set_caption('Calibration')
+    canvas.fill((0, 0, 0))
+    pygame.display.update()
+
+    # collect data
+    print('Collecting {} images for camera calibration.'.format(images_to_collect))
+    print('Press ENTER to capture image.')
+
+    while not calib.finish:
+        calib.update_keyboard()
+        calib.control()
+        calib.take_pic()
+        calib.image_collection(dataDir, images_to_collect)
+        img_surface = pygame.surfarray.make_surface(calib.img)
+        img_surface = pygame.transform.flip(img_surface, True, False)
+        img_surface = pygame.transform.rotozoom(img_surface, 90, 1)
+        canvas.blit(img_surface, (0, 0))
+        pygame.display.update()
+
+    print('Finished image collection.\n')
