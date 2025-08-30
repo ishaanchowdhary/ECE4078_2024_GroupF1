@@ -1,0 +1,15 @@
+Fruits catched:
+Top left
+- lemon, pumpkin2, tomato, capsicum2
+Top right
+- garlic
+Bottom left
+- potato
+Bottom right
+- lime, capsicum, pear, pumpkin1
+Slam Saved: YES
+
+Target Pose: YES
+
+slam_fruit: YES
+
